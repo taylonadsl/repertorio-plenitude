@@ -1,6 +1,7 @@
 -- ============================================================
 -- Repertório Banda Plenitude — rode este arquivo inteiro no
 -- Supabase > SQL Editor > New query > Run
+-- Pode rodar quantas vezes quiser: não apaga músicas nem perfis.
 -- ============================================================
 
 create table if not exists profiles (
@@ -34,7 +35,7 @@ create or replace function is_admin() returns boolean
 language sql stable security definer set search_path = public as
 $$ select exists (select 1 from profiles where user_id = auth.uid() and role = 'admin') $$;
 
--- Ao entrar com Google pela 1ª vez: cria o perfil (ou liga a um perfil que o ADM já cadastrou pelo e-mail)
+-- Ao criar a conta no site: cria o perfil (ou liga a um perfil que o ADM já cadastrou pelo e-mail)
 create or replace function handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
@@ -59,28 +60,42 @@ create trigger on_auth_user_created after insert on auth.users
 alter table profiles enable row level security;
 alter table songs enable row level security;
 
+drop policy if exists "ver perfis" on profiles;
 create policy "ver perfis" on profiles for select to authenticated using (true);
+drop policy if exists "adm insere perfis" on profiles;
 create policy "adm insere perfis" on profiles for insert to authenticated with check (is_admin());
+drop policy if exists "adm edita perfis" on profiles;
 create policy "adm edita perfis" on profiles for update to authenticated using (is_admin());
+drop policy if exists "adm exclui perfis" on profiles;
 create policy "adm exclui perfis" on profiles for delete to authenticated using (is_admin());
 
+drop policy if exists "ver musicas" on songs;
 create policy "ver musicas" on songs for select to authenticated using (true);
+drop policy if exists "inserir musicas" on songs;
 create policy "inserir musicas" on songs for insert to authenticated with check (
   is_admin()
   or (owner_id = my_profile_id() and not is_emergency)
   or (is_emergency and owner_id is null)
 );
+drop policy if exists "editar musicas" on songs;
 create policy "editar musicas" on songs for update to authenticated
   using (is_admin() or owner_id = my_profile_id())
   with check (is_admin() or owner_id = my_profile_id() or (is_emergency and owner_id is null));
+drop policy if exists "excluir musicas" on songs;
 create policy "excluir musicas" on songs for delete to authenticated
   using (is_admin() or owner_id = my_profile_id() or added_by = my_profile_id());
 
 -- Atualização em tempo real
-alter publication supabase_realtime add table songs;
-alter publication supabase_realtime add table profiles;
+do $$ begin
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and tablename='songs') then
+    alter publication supabase_realtime add table songs;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and tablename='profiles') then
+    alter publication supabase_realtime add table profiles;
+  end if;
+end $$;
 
 -- ============================================================
--- DEPOIS de entrar no site pela 1ª vez com o seu Google, rode:
--- update profiles set role = 'admin' where email = 'SEU_EMAIL@gmail.com';
+-- DEPOIS de criar a sua conta no site, rode:
+-- update profiles set role = 'admin' where email = 'SEU_EMAIL';
 -- ============================================================

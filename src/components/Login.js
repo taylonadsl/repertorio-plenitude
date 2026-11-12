@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from './ThemeToggle';
+import { Equalizer, LogoMark } from './Equalizer';
 
 const traduz = (m = '') => {
   const t = m.toLowerCase();
@@ -50,20 +51,17 @@ export default function Login() {
   return (
     <main className="login">
       <aside className="hero">
-        <svg className="staff" viewBox="0 0 420 120" aria-hidden="true">
-          {[30, 42, 54, 66, 78].map((y) => <line key={y} x1="0" x2="420" y1={y} y2={y} />)}
-          {[[70, 78], [130, 66], [190, 54], [250, 66], [310, 42], [370, 54]].map(([x, y]) => (
-            <g key={x}><ellipse cx={x} cy={y} rx="9" ry="6.5" transform={`rotate(-20 ${x} ${y})`} /><line className="stem" x1={x + 8} x2={x + 8} y1={y - 2} y2={y - 38} /></g>
-          ))}
-        </svg>
-        <p className="eyebrow">Banda Plenitude</p>
-        <h1>Cada voz com as suas canções.</h1>
-        <p>Veja quem canta o quê, publique o seu repertório e evite músicas repetidas, tudo num só lugar.</p>
+        <div className="brand"><LogoMark /> Plenitude</div>
+        <div className="hero-copy">
+          <h1>Cada voz com as suas canções.</h1>
+          <p>Veja quem canta o quê, publique o seu repertório e evite músicas repetidas, tudo num só lugar.</p>
+        </div>
+        <Equalizer live />
       </aside>
 
       <section className="auth-wrap">
         <div className="auth-top"><ThemeToggle /></div>
-        <form className="auth" onSubmit={submit}>
+        <form className="auth glass" onSubmit={submit}>
           <h2>{title}</h2>
           {mode !== 'recuperar' && (
             <div className="tabs" role="tablist">

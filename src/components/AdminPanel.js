@@ -27,16 +27,17 @@ export default function AdminPanel({ profiles, me, onChange, toast }) {
 
   return (
     <section className="panel">
-      <h2>Painel do administrador</h2>
-      <form className="row" onSubmit={add}>
+      <h2>Administração</h2>
+      <p className="lede">Cadastre cantoras e defina quem pode administrar o repertório.</p>
+      <form className="row glass" onSubmit={add}>
         <input placeholder="Nome da cantora" value={name} onChange={(e) => setName(e.target.value)} />
-        <input placeholder="E-mail Google (opcional)" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <input placeholder="E-mail (opcional)" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         <button className="btn" type="submit">Adicionar cantora</button>
       </form>
-      <p className="hint">Se informar o e-mail, a cantora assume este perfil quando entrar com o Google.</p>
+      <p className="hint">Com o e-mail, a cantora assume este perfil quando criar a conta com ele.</p>
       <ul className="people">
         {profiles.map((p) => (
-          <li key={p.id}>
+          <li key={p.id} className="glass">
             <div><strong>{p.name}</strong><small>{p.email || 'sem e-mail'}{p.user_id ? '' : ' • ainda não entrou'}</small></div>
             <select value={p.role} onChange={(e) => setRole(p, e.target.value)} disabled={p.id === me.id}>
               <option value="singer">Cantora</option>

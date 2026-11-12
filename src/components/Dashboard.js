@@ -4,9 +4,10 @@ import { supabase } from '@/lib/supabase';
 import { norm, initials } from '@/lib/utils';
 import AdminPanel from './AdminPanel';
 import ThemeToggle from './ThemeToggle';
-import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon, NoteIcon } from './Icons';
+import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon } from './Icons';
+import { LogoMark } from './Equalizer';
 
-const TONES = ['#1f5f5b', '#a8412f', '#8a6422', '#4a5a8c', '#6b4a7a', '#2e6b46'];
+const TONES = ['#2f6bff', '#0e9ad8', '#7457f0', '#0f9f8f', '#d9487f', '#d98a12'];
 const toneOf = (n = '') => TONES[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % TONES.length];
 
 function Avatar({ p, size = 40 }) {
@@ -89,12 +90,12 @@ export default function Dashboard({ me, onSignOut }) {
   return (
     <div className="app">
       <header className="top">
-        <div className="brand"><NoteIcon /> Plenitude</div>
+        <div className="brand"><LogoMark /> Plenitude</div>
         <div className="tools">
           <ThemeToggle />
           <Avatar p={me} size={36} />
           <span className="who">{me.name.split(' ')[0]}{isAdmin && <em>ADM</em>}</span>
-          <button className="link" onClick={onSignOut}>Sair</button>
+          <button className="btn-ghost sm" onClick={onSignOut}>Sair</button>
         </div>
         <nav className="tabs-nav" aria-label="Seções">
           <button className={tab === 'repertorio' ? 'on' : ''} onClick={() => setTab('repertorio')}>Repertório</button>
@@ -107,11 +108,11 @@ export default function Dashboard({ me, onSignOut }) {
       ) : (
         <main>
           <section className="finder">
-            <p className="eyebrow">Repertório da banda</p>
             <h1>Essa música já tem dona?</h1>
-            <div className="search">
+            <p className="lede">Pesquise antes de escolher. O site avisa se outra cantora já canta.</p>
+            <div className="search glass">
               <SearchIcon />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Busque por música, artista ou cantora" aria-label="Pesquisar" />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Música, artista ou cantora" aria-label="Pesquisar" />
               {query && <button className="icon-btn sm" onClick={() => setQuery('')} aria-label="Limpar busca"><XIcon /></button>}
             </div>
             {st && (
@@ -133,7 +134,7 @@ export default function Dashboard({ me, onSignOut }) {
             </dl>
           </section>
 
-          <section className="block emergency">
+          <section className="block emergency glass">
             <h2>Músicas de emergência <small>qualquer cantora pode assumir</small></h2>
             <ul className="songs">
               {emergency.length === 0 && <li className="empty">Nenhuma música de emergência{q ? ' com essa busca' : ' ainda'}.</li>}
@@ -148,7 +149,7 @@ export default function Dashboard({ me, onSignOut }) {
               const mine = p.id === me.id;
               const canEdit = mine || isAdmin;
               return (
-                <article key={p.id} className={`card ${mine ? 'mine' : ''}`}>
+                <article key={p.id} className={`card glass ${mine ? 'mine' : ''}`}>
                   <header>
                     <Avatar p={p} />
                     <div><h3>{p.name}</h3><small>{p.list.length} {p.list.length === 1 ? 'música' : 'músicas'}</small></div>

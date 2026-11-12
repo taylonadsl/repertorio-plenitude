@@ -18,7 +18,7 @@ export default function NewPassword({ onDone }) {
 
   return (
     <main className="center">
-      <form className="auth" onSubmit={submit}>
+      <form className="auth glass" onSubmit={submit}>
         <h2>Crie uma nova senha</h2>
         <label className="field">Nova senha
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required autoComplete="new-password" />
