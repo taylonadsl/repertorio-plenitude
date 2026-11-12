@@ -18,6 +18,7 @@ const traduz = (m = '') => {
 export default function Login() {
   const [mode, setMode] = useState('entrar'); // entrar | criar | recuperar
   const [name, setName] = useState('');
+  const [gender, setGender] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -32,7 +33,8 @@ export default function Login() {
     setError(''); setInfo(''); setBusy(true);
     const mail = email.trim().toLowerCase();
     if (mode === 'criar') {
-      const { data, error } = await supabase.auth.signUp({ email: mail, password, options: { data: { full_name: name.trim() } } });
+      if (!gender) { setError('Escolha feminino ou masculino.'); setBusy(false); return; }
+      const { data, error } = await supabase.auth.signUp({ email: mail, password, options: { data: { full_name: name.trim(), gender } } });
       if (error) setError(traduz(error.message));
       else if (!data.session) setInfo('Conta criada! Abra o seu e-mail e clique no link de confirmação para entrar.');
     } else if (mode === 'entrar') {
@@ -46,7 +48,7 @@ export default function Login() {
     setBusy(false);
   };
 
-  const title = { entrar: 'Bem-vinda de volta', criar: 'Crie sua conta', recuperar: 'Recuperar senha' }[mode];
+  const title = { entrar: 'Entre na sua conta', criar: 'Crie sua conta', recuperar: 'Recuperar senha' }[mode];
 
   return (
     <main className="login">
@@ -71,8 +73,17 @@ export default function Login() {
           )}
           {mode === 'criar' && (
             <label className="field">Seu nome
-              <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Como você é chamada" autoComplete="name" />
+              <input value={name} onChange={(e) => setName(e.target.value)} required placeholder="Como você é chamado na banda" autoComplete="name" />
             </label>
+          )}
+          {mode === 'criar' && (
+            <fieldset className="choice">
+              <legend>Você é</legend>
+              <div>
+                <label className={gender === 'f' ? 'on' : ''}><input type="radio" name="gender" value="f" checked={gender === 'f'} onChange={() => setGender('f')} />Cantora</label>
+                <label className={gender === 'm' ? 'on' : ''}><input type="radio" name="gender" value="m" checked={gender === 'm'} onChange={() => setGender('m')} />Cantor</label>
+              </div>
+            </fieldset>
           )}
           <label className="field">E-mail
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="voce@email.com" autoComplete="email" />

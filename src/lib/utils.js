@@ -5,3 +5,6 @@ export const norm = (s = '') =>
 
 export const initials = (name = '') =>
   name.split(' ').filter(Boolean).slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+
+// Gênero: 'f' = feminino, 'm' = masculino
+export const voiceOf = (g) => (g === 'm' ? 'Cantor' : g === 'f' ? 'Cantora' : 'Cantor(a)');

@@ -11,6 +11,7 @@ create table if not exists profiles (
   email text unique,
   avatar_url text,
   role text not null default 'singer' check (role in ('singer','admin')),
+  gender text check (gender in ('f','m')),
   created_at timestamptz not null default now()
 );
 
@@ -26,6 +27,9 @@ create table if not exists songs (
   check ((is_emergency and owner_id is null) or (not is_emergency and owner_id is not null))
 );
 
+-- Bancos criados antes desta versão: adiciona o campo de voz (cantor/cantora)
+alter table profiles add column if not exists gender text check (gender in ('f','m'));
+
 -- Funções auxiliares
 create or replace function my_profile_id() returns uuid
 language sql stable security definer set search_path = public as
@@ -40,14 +44,16 @@ create or replace function handle_new_user() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
   update profiles set user_id = new.id,
-         avatar_url = new.raw_user_meta_data->>'avatar_url'
+         avatar_url = new.raw_user_meta_data->>'avatar_url',
+         gender = coalesce(new.raw_user_meta_data->>'gender', gender)
    where email = lower(new.email) and user_id is null;
   if not found then
-    insert into profiles (user_id, name, email, avatar_url)
+    insert into profiles (user_id, name, email, avatar_url, gender)
     values (new.id,
             coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email,'@',1)),
             lower(new.email),
-            new.raw_user_meta_data->>'avatar_url');
+            new.raw_user_meta_data->>'avatar_url',
+            new.raw_user_meta_data->>'gender');
   end if;
   return new;
 end $$;
