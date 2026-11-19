@@ -105,3 +105,32 @@ end $$;
 -- DEPOIS de criar a sua conta no site, rode:
 -- update profiles set role = 'admin' where email = 'SEU_EMAIL';
 -- ============================================================
+
+
+-- =========================================================
+-- SUGESTÕES: qualquer pessoa sugere músicas, com observação
+-- =========================================================
+create table if not exists suggestions (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  artist text,
+  note text,
+  added_by uuid references profiles(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+alter table suggestions enable row level security;
+drop policy if exists "ver sugestoes" on suggestions;
+create policy "ver sugestoes" on suggestions for select to authenticated using (true);
+drop policy if exists "criar sugestoes" on suggestions;
+create policy "criar sugestoes" on suggestions for insert to authenticated with check (added_by = my_profile_id());
+drop policy if exists "editar sugestoes" on suggestions;
+create policy "editar sugestoes" on suggestions for update to authenticated
+  using (is_admin() or added_by = my_profile_id()) with check (is_admin() or added_by = my_profile_id());
+drop policy if exists "excluir sugestoes" on suggestions;
+create policy "excluir sugestoes" on suggestions for delete to authenticated
+  using (is_admin() or added_by = my_profile_id());
+do $$ begin
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and tablename='suggestions') then
+    alter publication supabase_realtime add table suggestions;
+  end if;
+end $$;

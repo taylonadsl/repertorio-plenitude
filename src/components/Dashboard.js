@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { norm, initials, voiceOf } from '@/lib/utils';
 import AdminPanel from './AdminPanel';
+import Suggestions from './Suggestions';
 import ThemeToggle from './ThemeToggle';
 import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon } from './Icons';
 import { LogoMark } from './Equalizer';
@@ -21,6 +22,7 @@ export default function Dashboard({ me, onSignOut }) {
   const isAdmin = me.role === 'admin';
   const [profiles, setProfiles] = useState([]);
   const [songs, setSongs] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const [query, setQuery] = useState('');
   const [artist, setArtist] = useState('');
   const [tab, setTab] = useState('repertorio');
@@ -30,11 +32,12 @@ export default function Dashboard({ me, onSignOut }) {
   const toast = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3200); };
 
   const load = useCallback(async () => {
-    const [p, s] = await Promise.all([
+    const [p, s, g] = await Promise.all([
       supabase.from('profiles').select('*').order('name'),
       supabase.from('songs').select('*').order('title'),
+      supabase.from('suggestions').select('*').order('created_at', { ascending: false }),
     ]);
-    setProfiles(p.data || []); setSongs(s.data || []);
+    setProfiles(p.data || []); setSongs(s.data || []); setSuggestions(g.data || []);
   }, []);
 
   useEffect(() => {
@@ -42,6 +45,7 @@ export default function Dashboard({ me, onSignOut }) {
     const ch = supabase.channel('plenitude')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'songs' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'suggestions' }, load)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [load]);
@@ -49,7 +53,7 @@ export default function Dashboard({ me, onSignOut }) {
   const byId = useMemo(() => Object.fromEntries(profiles.map((p) => [p.id, p])), [profiles]);
   const q = norm(query);
   const exact = q ? songs.find((s) => s.title_key === q) : null;
-  const matches = (s) => !q || s.title_key.includes(q) || norm(s.artist || '').includes(q);
+  const matches = (s) => !q || norm(s.title).includes(q) || norm(s.artist || '').includes(q) || norm(s.note || '').includes(q);
 
   const addSong = async (title, { ownerId = null, emergency = false, artistName = '' } = {}) => {
     const clean = title.trim();
@@ -133,6 +137,7 @@ export default function Dashboard({ me, onSignOut }) {
               <div><dt>Vozes</dt><dd>{profiles.length}</dd></div>
               <div><dt>Músicas</dt><dd>{songs.length}</dd></div>
               <div><dt>Emergência</dt><dd>{emergencyAll.length}</dd></div>
+              <div><dt>Sugestões</dt><dd>{suggestions.length}</dd></div>
             </dl>
           </section>
 
@@ -143,6 +148,11 @@ export default function Dashboard({ me, onSignOut }) {
               {emergency.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={isAdmin || s.added_by === me.id} onDelete={removeSong} />)}
             </ul>
           </section>
+
+          <Suggestions
+            items={suggestions.filter(matches)}
+            byId={byId} me={me} isAdmin={isAdmin} toast={toast} onChange={load} tone={toneOf}
+          />
 
           <div className="section-head">
             <h2 className="section-title">Cantores e cantoras</h2>

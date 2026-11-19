@@ -271,3 +271,28 @@ main, .panel { max-width: 1180px; margin: 0 auto; padding: clamp(2rem, 5vw, 3.5r
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* ---- Sugestões ---- */
+textarea {
+  width: 100%; font: inherit; color: inherit; resize: vertical; min-height: 64px; line-height: 1.5;
+  background: var(--field); border: 1px solid var(--line-strong); border-radius: 14px; padding: .7rem 1rem;
+  transition: border-color .15s, box-shadow .15s;
+}
+textarea::placeholder { color: var(--muted); opacity: .85; }
+textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.suggestions { border-color: color-mix(in srgb, var(--accent-2) 30%, var(--line)); background: linear-gradient(135deg, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 60%), var(--glass); }
+.suggestions h2 { font-size: 1.25rem; margin-bottom: .9rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .7rem; }
+.suggestions h2::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--accent-2); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-2) 20%, transparent); align-self: center; }
+.suggestions h2 small { font-size: .9rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.sug-form { display: grid; gap: .6rem; grid-template-columns: 1fr; margin-bottom: 1.2rem; }
+@media (min-width: 760px) { .sug-form { grid-template-columns: 1fr 1fr; } .sug-form textarea { grid-column: 1 / -1; } .sug-form .btn { justify-self: end; grid-column: 2; } }
+.sug-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+.sug { padding: .85rem 1rem; border-radius: 16px; background: color-mix(in srgb, var(--field) 70%, transparent); border: 1px solid var(--line); display: grid; gap: .5rem; }
+.sug-head { display: flex; align-items: flex-start; justify-content: space-between; gap: .6rem; }
+.sug-note { color: var(--ink); font-size: .95rem; white-space: pre-wrap; overflow-wrap: anywhere; padding: .55rem .8rem; border-radius: 12px; background: var(--accent-soft); border-left: 3px solid var(--accent-2); }
+.sug-meta { display: flex; align-items: center; gap: .5rem; font-size: .85rem; color: var(--muted); }
+.sug-meta b { color: var(--ink); font-weight: 700; }
+.sug-meta .av { box-shadow: none; }
+.sug-edit { display: grid; gap: .5rem; }
+.sug-edit-btns { display: flex; justify-content: flex-end; gap: .5rem; }
+.btn.sm-btn { min-height: 38px; padding: .35rem 1.1rem; font-size: .9rem; }
