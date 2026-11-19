@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { norm, initials, voiceOf } from '@/lib/utils';
 import AdminPanel from './AdminPanel';
 import Suggestions from './Suggestions';
-import WhatsNew, { TOUR_KEY } from './WhatsNew';
+import WhatsNew from './WhatsNew';
 import ThemeToggle from './ThemeToggle';
 import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon } from './Icons';
 import { LogoMark } from './Equalizer';
@@ -29,18 +29,11 @@ export default function Dashboard({ me, onSignOut }) {
   const [tab, setTab] = useState('repertorio');
   const [who, setWho] = useState('todos');
   const [msg, setMsg] = useState(null);
-  const [tour, setTour] = useState(false);
-
-  // Mostra o tutorial da novidade uma vez por pessoa (neste aparelho)
-  useEffect(() => {
-    try { if (!localStorage.getItem(`${TOUR_KEY}-${me.id}`)) setTour(true); } catch { setTour(true); }
-  }, [me.id]);
-  const closeTour = () => {
-    try { localStorage.setItem(`${TOUR_KEY}-${me.id}`, '1'); } catch {}
-    setTour(false);
-  };
+  // Tutorial da novidade: abre sempre que a pessoa entra no site já logada ou logo após o login.
+  // Para desligar depois, troque true por false.
+  const [tour, setTour] = useState(true);
   const goToSuggestions = () => {
-    closeTour(); setTab('repertorio');
+    setTour(false); setTab('repertorio');
     setTimeout(() => document.querySelector('.suggestions')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
   };
 
@@ -201,7 +194,7 @@ export default function Dashboard({ me, onSignOut }) {
         </main>
       )}
       {msg && <div className={`toast ${msg.type}`} role="status">{msg.text}</div>}
-      {tour && <WhatsNew onClose={closeTour} onGo={goToSuggestions} />}
+      {tour && <WhatsNew onClose={() => setTour(false)} onGo={goToSuggestions} />}
     </div>
   );
 }

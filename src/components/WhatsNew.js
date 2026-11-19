@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { BulbIcon, PencilIcon, XIcon } from './Icons';
 
-// Tutorial da nova ferramenta. Para mostrar de novo para todos numa próxima novidade, troque a versão.
+// Tutorial da nova ferramenta. Aparece para quem está logado, toda vez que entra no site.
 export const TOUR_KEY = 'plenitude-novidade-sugestoes-v1';
 
 export default function WhatsNew({ onClose, onGo }) {
