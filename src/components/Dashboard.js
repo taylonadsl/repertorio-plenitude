@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { norm, initials, voiceOf } from '@/lib/utils';
 import AdminPanel from './AdminPanel';
 import Suggestions from './Suggestions';
+import WhatsNew, { TOUR_KEY } from './WhatsNew';
 import ThemeToggle from './ThemeToggle';
 import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon } from './Icons';
 import { LogoMark } from './Equalizer';
@@ -28,6 +29,20 @@ export default function Dashboard({ me, onSignOut }) {
   const [tab, setTab] = useState('repertorio');
   const [who, setWho] = useState('todos');
   const [msg, setMsg] = useState(null);
+  const [tour, setTour] = useState(false);
+
+  // Mostra o tutorial da novidade uma vez por pessoa (neste aparelho)
+  useEffect(() => {
+    try { if (!localStorage.getItem(`${TOUR_KEY}-${me.id}`)) setTour(true); } catch { setTour(true); }
+  }, [me.id]);
+  const closeTour = () => {
+    try { localStorage.setItem(`${TOUR_KEY}-${me.id}`, '1'); } catch {}
+    setTour(false);
+  };
+  const goToSuggestions = () => {
+    closeTour(); setTab('repertorio');
+    setTimeout(() => document.querySelector('.suggestions')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  };
 
   const toast = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3200); };
 
@@ -186,6 +201,7 @@ export default function Dashboard({ me, onSignOut }) {
         </main>
       )}
       {msg && <div className={`toast ${msg.type}`} role="status">{msg.text}</div>}
+      {tour && <WhatsNew onClose={closeTour} onGo={goToSuggestions} />}
     </div>
   );
 }
