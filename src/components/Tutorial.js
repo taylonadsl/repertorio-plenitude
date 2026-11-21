@@ -5,7 +5,7 @@ import { BulbIcon, PencilIcon, XIcon, FlagIcon, ReleaseIcon, TrashIcon, MicIcon,
 // Tutorial geral do site.
 // MOSTRAR_SEMPRE = true  -> abre toda vez que a pessoa entra no site.
 // MOSTRAR_SEMPRE = false -> abre só na primeira vez (e quando o TUTORIAL_KEY mudar). O botão "Ajuda" abre quando quiser.
-export const MOSTRAR_SEMPRE = false;
+export const MOSTRAR_SEMPRE = true;
 export const TUTORIAL_KEY = 'plenitude-tutorial-v3';
 
 export const tutorialJaVisto = () => {
