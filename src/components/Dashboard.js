@@ -7,6 +7,7 @@ import Suggestions from './Suggestions';
 import Collapse from './Collapse';
 import Tutorial, { tutorialJaVisto, tutorialMarcarVisto } from './Tutorial';
 import ThemeToggle from './ThemeToggle';
+import Footer from './Footer';
 import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon, ReleaseIcon, MicIcon, HelpIcon, ChevronIcon } from './Icons';
 import { LogoMark } from './Equalizer';
 
@@ -253,6 +254,7 @@ export default function Dashboard({ me, onSignOut }) {
           </section>
         </main>
       )}
+      <Footer />
       {msg && <div className={`toast ${msg.type}`} role="status">{msg.text}</div>}
       {tour && <Tutorial isAdmin={isAdmin} onClose={closeTour} />}
     </div>

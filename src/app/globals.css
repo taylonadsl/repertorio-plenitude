@@ -406,3 +406,16 @@ button.act.danger:hover { color: var(--bad); border-color: var(--bad); backgroun
   .card .acts { grid-template-columns: 1fr; }
   .card .act { flex-direction: row; min-height: 40px; font-size: .8rem; gap: .4rem; border-radius: 999px; }
 }
+
+/* ===== Rodapé de créditos ===== */
+.credit { max-width: 560px; margin: 0 auto; padding: 2.2rem 1.2rem 2.6rem; text-align: center; font-size: .9rem; line-height: 1.65; color: var(--muted); display: grid; gap: .35rem; }
+.credit::before { content: ''; width: 72px; height: 3px; border-radius: 999px; margin: 0 auto 1rem; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.credit-name { font-weight: 800; font-size: 1.02rem; letter-spacing: -.01em; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent; white-space: nowrap; }
+.credit-heart { display: inline-flex; vertical-align: -3px; color: #e0467c; animation: beat 2.4s ease-in-out infinite; }
+.credit-heart svg { width: 16px; height: 16px; }
+@keyframes beat { 0%, 60%, 100% { transform: scale(1); } 30% { transform: scale(1.22); } }
+.credit-login { padding-top: 1.6rem; padding-bottom: 1.4rem; }
+
+/* ===== Créditos dentro do tutorial ===== */
+.tour-credit { width: 100%; margin-top: .4rem; padding: .9rem 1rem; border-radius: 16px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); text-align: center; display: grid; gap: .35rem; }
+.tour-credit p { font-size: .9rem; line-height: 1.6; color: var(--muted); }

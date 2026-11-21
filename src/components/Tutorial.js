@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { BulbIcon, PencilIcon, XIcon, FlagIcon, ReleaseIcon, TrashIcon, MicIcon, PlusIcon, SunIcon, SearchIcon, ChevronIcon } from './Icons';
+import { DEV_NAME } from './Footer';
+import { BulbIcon, HeartIcon, PencilIcon, XIcon, FlagIcon, ReleaseIcon, TrashIcon, MicIcon, PlusIcon, SunIcon, SearchIcon, ChevronIcon } from './Icons';
 
 // Tutorial geral do site.
 // MOSTRAR_SEMPRE = true  -> abre toda vez que a pessoa entra no site.
@@ -27,6 +28,10 @@ export default function Tutorial({ isAdmin, onClose }) {
         <span className="tour-tag">Tutorial rápido</span>
         <h2 id="tour-title">Bem-vindo ao Repertório Plenitude</h2>
         <p>Aqui cada voz da banda mostra as músicas que canta. Assim ninguém repete música sem querer. Em poucos passos você aprende a usar tudo.</p>
+        <div className="tour-credit">
+          <p>Site desenvolvido por <strong className="credit-name">{DEV_NAME}</strong>, com o intuito de ajudar cantoras a organizar seus repertórios musicais.</p>
+          <p>Feito com muito amor e carinho <span className="credit-heart"><HeartIcon /></span> para ajudar todos vocês. Obrigado!</p>
+        </div>
       </div>
     ),
     (

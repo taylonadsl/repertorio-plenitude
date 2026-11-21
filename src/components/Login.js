@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import ThemeToggle from './ThemeToggle';
+import Footer from './Footer';
 import { Equalizer, LogoMark } from './Equalizer';
 
 const traduz = (m = '') => {
@@ -104,6 +105,7 @@ export default function Login() {
           {mode === 'entrar' && <button type="button" className="link center-link" onClick={() => go('recuperar')}>Esqueci minha senha</button>}
           {mode === 'recuperar' && <button type="button" className="link center-link" onClick={() => go('entrar')}>Voltar para o login</button>}
         </form>
+        <Footer className="credit-login" />
       </section>
     </main>
   );
