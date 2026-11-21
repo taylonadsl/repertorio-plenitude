@@ -419,3 +419,50 @@ button.act.danger:hover { color: var(--bad); border-color: var(--bad); backgroun
 /* ===== Créditos dentro do tutorial ===== */
 .tour-credit { width: 100%; margin-top: .4rem; padding: .9rem 1rem; border-radius: 16px; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); text-align: center; display: grid; gap: .35rem; }
 .tour-credit p { font-size: .9rem; line-height: 1.6; color: var(--muted); }
+
+/* ---- Bolinha de sugestões (canto inferior esquerdo) e aba Pedidos de melhorias ---- */
+.fb-fab {
+  position: fixed; z-index: 20; left: max(1rem, env(safe-area-inset-left)); bottom: max(1rem, env(safe-area-inset-bottom));
+  width: 54px; height: 54px; border-radius: 50%; border: 1px solid var(--line-strong); display: grid; place-items: center; padding: 0;
+  color: var(--accent-ink); background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 10px 28px -8px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,.35); transition: transform .15s, box-shadow .2s;
+}
+.fb-fab svg { width: 24px; height: 24px; }
+.fb-fab:hover { transform: translateY(-2px) scale(1.04); }
+.fb-fab:active { transform: scale(.96); }
+.fb-backdrop { position: fixed; inset: 0; z-index: 40; display: flex; align-items: flex-end; justify-content: flex-start; padding: 1rem; padding-bottom: max(1rem, env(safe-area-inset-bottom)); background: rgba(3, 9, 24, .45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); animation: fadein .2s ease; }
+.fb-sheet { width: min(420px, 100%); border-radius: 22px; padding: 1.1rem 1.1rem 1rem; background: var(--glass-strong); display: grid; gap: .7rem; margin-bottom: 64px; }
+.fb-head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.fb-head h3 { font-size: 1.15rem; }
+.fb-sub { color: var(--muted); font-size: .92rem; line-height: 1.45; }
+.fb-foot { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.fb-foot small { color: var(--muted); }
+.fb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .8rem; }
+.fb-item { border-radius: 18px; padding: 1rem 1.1rem; display: grid; gap: .6rem; }
+.fb-item.new { border-color: var(--accent); }
+.fb-who { display: flex; align-items: center; gap: .7rem; }
+.fb-who > div { display: grid; line-height: 1.25; min-width: 0; flex: 1; }
+.fb-who small { color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.fb-msg { white-space: pre-wrap; overflow-wrap: anywhere; }
+.fb-acts { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.nav-dot { display: inline-block; min-width: 18px; height: 18px; padding: 0 5px; margin-left: .4rem; border-radius: 999px; background: var(--accent); color: #fff; font-size: .7rem; line-height: 18px; text-align: center; font-weight: 800; }
+main, .panel { padding-bottom: 6rem; }
+
+/* Salto fluido da bolinha (só enquanto a pessoa ainda não abriu) */
+.fb-fab.hop { animation: fb-hop 2.8s cubic-bezier(.3, .7, .4, 1) .6s infinite; }
+.fb-fab.hop::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--accent); opacity: 0; animation: fb-ring 2.8s ease-out .6s infinite; pointer-events: none; }
+@keyframes fb-hop {
+  0%, 60%, 100% { transform: translateY(0) scale(1, 1); }
+  10% { transform: translateY(0) scale(1.07, .93); }
+  26% { transform: translateY(-14px) scale(.96, 1.05); }
+  42% { transform: translateY(0) scale(1.05, .95); }
+  52% { transform: translateY(-4px) scale(1, 1); }
+}
+@keyframes fb-ring { 0%, 14% { transform: scale(.9); opacity: 0; } 24% { opacity: .5; } 62%, 100% { transform: scale(1.5); opacity: 0; } }
+.fb-hint {
+  position: fixed; z-index: 20; left: calc(max(1rem, env(safe-area-inset-left)) + 64px); bottom: calc(max(1rem, env(safe-area-inset-bottom)) + 9px);
+  padding: .45rem .9rem; border-radius: 999px; font-size: .88rem; font-weight: 700; color: var(--ink); background: var(--glass-strong);
+  border: 1px solid var(--line-strong); box-shadow: var(--shadow); cursor: pointer; animation: fb-hint-in .5s cubic-bezier(.2, .8, .3, 1);
+}
+@keyframes fb-hint-in { from { opacity: 0; transform: translateX(-10px); } }
+@media (prefers-reduced-motion: reduce) { .fb-fab.hop, .fb-fab.hop::after, .fb-hint { animation: none; } }

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
-export default function AdminPanel({ profiles, me, onChange, toast }) {
+export default function AdminPanel({ profiles, me, isDev, onChange, toast }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [gender, setGender] = useState('f');
@@ -51,7 +51,7 @@ export default function AdminPanel({ profiles, me, onChange, toast }) {
             </select>
             <select value={p.role} onChange={(e) => update(p, { role: e.target.value }, 'Permissão atualizada.')} disabled={p.id === me.id} aria-label={`Permissão de ${p.name}`}>
               <option value="singer">Integrante</option>
-              <option value="admin">Administrador(a)</option>
+              <option value="admin">{isDev && p.id === me.id ? 'Desenvolvedor' : 'Administrador(a)'}</option>
             </select>
             {p.id !== me.id ? <button className="btn-danger" onClick={() => remove(p)}>Excluir</button> : <span />}
           </li>

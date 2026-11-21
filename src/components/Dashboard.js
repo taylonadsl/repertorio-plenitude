@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { norm, initials, voiceOf } from '@/lib/utils';
 import AdminPanel from './AdminPanel';
 import Suggestions from './Suggestions';
+import FeedbackFab from './FeedbackFab';
+import FeedbackInbox from './FeedbackInbox';
 import Collapse from './Collapse';
 import Tutorial, { tutorialJaVisto, tutorialMarcarVisto } from './Tutorial';
 import ThemeToggle from './ThemeToggle';
@@ -26,6 +28,9 @@ export default function Dashboard({ me, onSignOut }) {
   const [profiles, setProfiles] = useState([]);
   const [songs, setSongs] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  // Pedidos de melhorias: só o desenvolvedor (definido no banco) enxerga a aba
+  const [isDev, setIsDev] = useState(false);
+  const [feedback, setFeedback] = useState([]);
   const [query, setQuery] = useState('');
   const [artist, setArtist] = useState('');
   const [tab, setTab] = useState('repertorio');
@@ -51,6 +56,24 @@ export default function Dashboard({ me, onSignOut }) {
     ]);
     setProfiles(p.data || []); setSongs(s.data || []); setSuggestions(g.data || []);
   }, []);
+
+  const loadFeedback = useCallback(async () => {
+    const { data } = await supabase.from('feedback').select('*').order('created_at', { ascending: false });
+    setFeedback(data || []);
+  }, []);
+
+  useEffect(() => {
+    supabase.rpc('is_dev').then(({ data }) => setIsDev(data === true));
+  }, []);
+
+  useEffect(() => {
+    if (!isDev) return;
+    loadFeedback();
+    const ch = supabase.channel('plenitude-feedback')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, loadFeedback)
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [isDev, loadFeedback]);
 
   useEffect(() => {
     load();
@@ -136,18 +159,21 @@ export default function Dashboard({ me, onSignOut }) {
         <div className="tools">
           <ThemeToggle />
           <Avatar p={me} size={36} />
-          <span className="who">{me.name.split(' ')[0]}{isAdmin && <em>ADM</em>}</span>
+          <span className="who">{me.name.split(' ')[0]}{isDev ? <em>DEV</em> : isAdmin && <em>ADM</em>}</span>
           <button className="btn-ghost sm help-btn" onClick={() => setTour(true)} aria-label="Ajuda: abrir o tutorial"><HelpIcon /><span>Ajuda</span></button>
           <button className="btn-ghost sm" onClick={onSignOut}>Sair</button>
         </div>
         <nav className="tabs-nav" aria-label="Seções">
           <button className={tab === 'repertorio' ? 'on' : ''} onClick={() => setTab('repertorio')}>Repertório</button>
           {isAdmin && <button className={tab === 'admin' ? 'on' : ''} onClick={() => setTab('admin')}>Administração</button>}
+          {isDev && <button className={tab === 'melhorias' ? 'on' : ''} onClick={() => setTab('melhorias')}>Pedidos de melhorias{feedback.some((f) => !f.read) && <span className="nav-dot">{feedback.filter((f) => !f.read).length}</span>}</button>}
         </nav>
       </header>
 
-      {tab === 'admin' && isAdmin ? (
-        <AdminPanel profiles={profiles} me={me} onChange={load} toast={toast} />
+      {tab === 'melhorias' && isDev ? (
+        <FeedbackInbox items={feedback} byId={byId} onChange={loadFeedback} toast={toast} />
+      ) : tab === 'admin' && isAdmin ? (
+        <AdminPanel profiles={profiles} me={me} isDev={isDev} onChange={load} toast={toast} />
       ) : (
         <main>
           <section className="finder">
@@ -255,6 +281,7 @@ export default function Dashboard({ me, onSignOut }) {
         </main>
       )}
       <Footer />
+      <FeedbackFab me={me} toast={toast} />
       {msg && <div className={`toast ${msg.type}`} role="status">{msg.text}</div>}
       {tour && <Tutorial isAdmin={isAdmin} onClose={closeTour} />}
     </div>
