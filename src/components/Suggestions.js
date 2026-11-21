@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { initials } from '@/lib/utils';
 import { TrashIcon, PencilIcon } from './Icons';
+import Collapse from './Collapse';
 
 const when = (d) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 
 // Sugestões: qualquer pessoa sugere uma música (nova ou do repertório) com uma observação.
-export default function Suggestions({ items, byId, me, isAdmin, toast, onChange, tone }) {
+export default function Suggestions({ items, byId, me, isAdmin, toast, onChange, tone, open, onToggle }) {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [note, setNote] = useState('');
@@ -26,8 +27,7 @@ export default function Suggestions({ items, byId, me, isAdmin, toast, onChange,
   };
 
   return (
-    <section className="block suggestions glass" aria-labelledby="sug-title">
-      <h2 id="sug-title">Sugestões <small>músicas para a semana, ideias ou novidades</small></h2>
+    <Collapse id="sug" className="suggestions" title="Sugestões" hint="músicas para a semana, ideias ou novidades" count={items.length} open={open} onToggle={onToggle}>
       <form className="sug-form" onSubmit={add}>
         <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Nome da música" aria-label="Nome da música sugerida" />
         <input value={artist} onChange={(e) => setArtist(e.target.value)} placeholder="Cantor original (opcional)" aria-label="Cantor original" />
@@ -40,7 +40,7 @@ export default function Suggestions({ items, byId, me, isAdmin, toast, onChange,
           <Suggestion key={s.id} s={s} author={byId[s.added_by]} canEdit={isAdmin || s.added_by === me.id} toast={toast} onChange={onChange} tone={tone} />
         ))}
       </ul>
-    </section>
+    </Collapse>
   );
 }
 

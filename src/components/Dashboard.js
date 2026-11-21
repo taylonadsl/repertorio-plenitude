@@ -4,9 +4,10 @@ import { supabase } from '@/lib/supabase';
 import { norm, initials, voiceOf } from '@/lib/utils';
 import AdminPanel from './AdminPanel';
 import Suggestions from './Suggestions';
+import Collapse from './Collapse';
 import Tutorial, { tutorialJaVisto, tutorialMarcarVisto } from './Tutorial';
 import ThemeToggle from './ThemeToggle';
-import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon, ReleaseIcon, MicIcon, HelpIcon } from './Icons';
+import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon, ReleaseIcon, MicIcon, HelpIcon, ChevronIcon } from './Icons';
 import { LogoMark } from './Equalizer';
 
 const TONES = ['#2f6bff', '#0e9ad8', '#7457f0', '#0f9f8f', '#d9487f', '#d98a12'];
@@ -28,6 +29,10 @@ export default function Dashboard({ me, onSignOut }) {
   const [artist, setArtist] = useState('');
   const [tab, setTab] = useState('repertorio');
   const [who, setWho] = useState('todos');
+  // Listas recolhíveis: chave -> aberta/fechada. O cartão da própria pessoa começa aberto.
+  const [openMap, setOpenMap] = useState({});
+  const isOpen = (k, def = false) => (k in openMap ? openMap[k] : def);
+  const toggle = (k, def = false) => setOpenMap((m) => ({ ...m, [k]: !(k in m ? m[k] : def) }));
   const [msg, setMsg] = useState(null);
   // Tutorial geral: abre na primeira vez (ou em nova versão do tutorial) e pelo botão "Ajuda".
   // Para abrir toda vez que a pessoa entra, troque MOSTRAR_SEMPRE para true em Tutorial.js.
@@ -58,6 +63,13 @@ export default function Dashboard({ me, onSignOut }) {
 
   const byId = useMemo(() => Object.fromEntries(profiles.map((p) => [p.id, p])), [profiles]);
   const q = norm(query);
+  // Ao pesquisar, abre tudo para mostrar os resultados
+  useEffect(() => {
+    if (!q) return;
+    setOpenMap({ sug: true, disp: true, emerg: true, ...Object.fromEntries(profiles.map((p) => ['p:' + p.id, true])) });
+  }, [q, profiles]);
+  const setAll = (open) => setOpenMap({ sug: open, disp: open, emerg: open, ...Object.fromEntries(profiles.map((p) => ['p:' + p.id, open])) });
+  const allClosed = !['sug', 'disp', 'emerg'].some((k) => isOpen(k)) && !profiles.some((p) => isOpen('p:' + p.id, p.id === me.id));
   const exact = q ? songs.find((s) => s.title_key === q) : null;
   const matches = (s) => !q || norm(s.title).includes(q) || norm(s.artist || '').includes(q) || norm(s.note || '').includes(q);
 
@@ -171,16 +183,18 @@ export default function Dashboard({ me, onSignOut }) {
             </dl>
           </section>
 
-          <section className="block emergency glass">
-            <h2>Músicas de emergência <small>qualquer pessoa da banda pode assumir</small></h2>
-            <ul className="songs">
-              {emergency.length === 0 && <li className="empty">Nenhuma música de emergência{q ? ' com essa busca' : ' ainda'}.</li>}
-              {emergency.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={isAdmin || s.added_by === me.id} onDelete={removeSong} />)}
-            </ul>
-          </section>
+          <div className="expand-bar">
+            <button type="button" className="btn-ghost sm" onClick={() => setAll(allClosed)}>{allClosed ? 'Expandir tudo' : 'Recolher tudo'}</button>
+          </div>
 
-          <section className="block available glass" aria-labelledby="disp-title">
-            <h2 id="disp-title">Músicas disponíveis <small>cantoras que não querem mais cantar. Quem quiser, assume</small></h2>
+          <Suggestions
+            items={suggestions.filter(matches)}
+            byId={byId} me={me} isAdmin={isAdmin} toast={toast} onChange={load} tone={toneOf}
+            open={isOpen('sug')} onToggle={() => toggle('sug')}
+          />
+
+          <Collapse id="disp" className="available" title="Músicas disponíveis" hint="cantoras que não querem mais cantar. Quem quiser, assume"
+            count={available.length} open={isOpen('disp')} onToggle={() => toggle('disp')}>
             <ul className="songs">
               {available.length === 0 && <li className="empty">Nenhuma música disponível{q ? ' com essa busca' : ' no momento'}.</li>}
               {available.map((s) => (
@@ -189,12 +203,15 @@ export default function Dashboard({ me, onSignOut }) {
                   canDelete={isAdmin || s.added_by === me.id} onDelete={removeSong} />
               ))}
             </ul>
-          </section>
+          </Collapse>
 
-          <Suggestions
-            items={suggestions.filter(matches)}
-            byId={byId} me={me} isAdmin={isAdmin} toast={toast} onChange={load} tone={toneOf}
-          />
+          <Collapse id="emerg" className="emergency" title="Músicas de emergência" hint="qualquer pessoa da banda pode assumir"
+            count={emergency.length} open={isOpen('emerg')} onToggle={() => toggle('emerg')}>
+            <ul className="songs">
+              {emergency.length === 0 && <li className="empty">Nenhuma música de emergência{q ? ' com essa busca' : ' ainda'}.</li>}
+              {emergency.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={isAdmin || s.added_by === me.id} onDelete={removeSong} />)}
+            </ul>
+          </Collapse>
 
           <div className="section-head">
             <h2 className="section-title">Cantores e cantoras</h2>
@@ -209,18 +226,27 @@ export default function Dashboard({ me, onSignOut }) {
             {singers.map((p) => {
               const mine = p.id === me.id;
               const canEdit = mine || isAdmin;
+              const key = 'p:' + p.id;
+              const open = isOpen(key, mine);
               return (
                 <article key={p.id} className={`card glass ${mine ? 'mine' : ''}`}>
                   <header>
-                    <Avatar p={p} />
-                    <div><h3>{p.name}</h3><small>{voiceOf(p.gender)}, {p.list.length} {p.list.length === 1 ? 'música' : 'músicas'}</small></div>
-                    {mine && <span className="badge">Você</span>}
+                    <button type="button" className="card-toggle" aria-expanded={open} aria-controls={`p-${p.id}`} onClick={() => toggle(key, mine)}>
+                      <Avatar p={p} />
+                      <span className="card-name"><h3>{p.name}</h3><small>{voiceOf(p.gender)}, {p.list.length} {p.list.length === 1 ? 'música' : 'músicas'}</small></span>
+                      {mine && <span className="badge">Você</span>}
+                      <ChevronIcon />
+                    </button>
                   </header>
-                  <ul className="songs">
-                    {p.shown.length === 0 && <li className="empty">{p.list.length ? 'Nada nesta busca.' : 'Ainda sem músicas.'}</li>}
-                    {p.shown.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={canEdit} onDelete={removeSong} onEmergency={canEdit ? toEmergency : null} onAvailable={canEdit ? toAvailable : null} />)}
-                  </ul>
-                  {canEdit && <AddInline onAdd={(t, a) => addSong(t, { ownerId: p.id, artistName: a })} />}
+                  {open && (
+                    <div id={`p-${p.id}`} className="coll-body">
+                      <ul className="songs">
+                        {p.shown.length === 0 && <li className="empty">{p.list.length ? 'Nada nesta busca.' : 'Ainda sem músicas.'}</li>}
+                        {p.shown.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={canEdit} onDelete={removeSong} onEmergency={canEdit ? toEmergency : null} onAvailable={canEdit ? toAvailable : null} />)}
+                      </ul>
+                      {canEdit && <AddInline onAdd={(t, a) => addSong(t, { ownerId: p.id, artistName: a })} />}
+                    </div>
+                  )}
                 </article>
               );
             })}

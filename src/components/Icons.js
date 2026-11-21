@@ -12,3 +12,4 @@ export const BulbIcon = () => <svg {...p}><path d="M9 18h6M10 21h4M12 3a6 6 0 0 
 export const ReleaseIcon = () => <svg {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>;
 export const MicIcon = () => <svg {...p}><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>;
 export const HelpIcon = () => <svg {...p}><circle cx="12" cy="12" r="9" /><path d="M9.6 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1.1.9-1.1 1.7M12 17h.01" /></svg>;
+export const ChevronIcon = () => <svg {...p} className="chev"><path d="m6 9 6 6 6-6" /></svg>;

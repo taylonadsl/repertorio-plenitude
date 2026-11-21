@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { BulbIcon, PencilIcon, XIcon, FlagIcon, ReleaseIcon, TrashIcon, MicIcon, PlusIcon, SunIcon, SearchIcon } from './Icons';
+import { BulbIcon, PencilIcon, XIcon, FlagIcon, ReleaseIcon, TrashIcon, MicIcon, PlusIcon, SunIcon, SearchIcon, ChevronIcon } from './Icons';
 
 // Tutorial geral do site.
 // MOSTRAR_SEMPRE = true  -> abre toda vez que a pessoa entra no site.
 // MOSTRAR_SEMPRE = false -> abre só na primeira vez (e quando o TUTORIAL_KEY mudar). O botão "Ajuda" abre quando quiser.
 export const MOSTRAR_SEMPRE = false;
-export const TUTORIAL_KEY = 'plenitude-tutorial-v2';
+export const TUTORIAL_KEY = 'plenitude-tutorial-v3';
 
 export const tutorialJaVisto = () => {
   if (MOSTRAR_SEMPRE) return false;
@@ -103,6 +103,7 @@ export default function Tutorial({ isAdmin, onClose }) {
       <div className="tour-body" key="6">
         <h2 id="tour-title">Outras dicas</h2>
         <ul className="tour-legend plain">
+          <li><ChevronIcon /><span>Toque no <b>título de cada lista</b> para abrir ou fechar. O botão <b>Expandir tudo</b> abre todas de uma vez.</span></li>
           <li><SearchIcon /><span>Os números no topo mostram quantas vozes, músicas, emergências, disponíveis e sugestões existem.</span></li>
           <li><PlusIcon /><span>Em <b>Cantores e cantoras</b>, use <b>Todos / Cantoras / Cantores</b> para filtrar a lista.</span></li>
           <li><SunIcon /><span>O botão de <b>sol e lua</b> troca entre o modo claro e o escuro.</span></li>
