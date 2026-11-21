@@ -23,12 +23,29 @@ create table if not exists songs (
   owner_id uuid references profiles(id) on delete cascade,
   is_emergency boolean not null default false,
   added_by uuid references profiles(id) on delete set null,
-  created_at timestamptz not null default now(),
-  check ((is_emergency and owner_id is null) or (not is_emergency and owner_id is not null))
+  is_available boolean not null default false,   -- música que a cantora não quer mais cantar
+  released_by uuid references profiles(id) on delete set null,  -- quem deixou disponível
+  created_at timestamptz not null default now()
 );
 
 -- Bancos criados antes desta versão: adiciona o campo de voz (cantor/cantora)
 alter table profiles add column if not exists gender text check (gender in ('f','m'));
+
+-- MÚSICAS DISPONÍVEIS: campos novos (bancos criados antes desta versão)
+alter table songs add column if not exists is_available boolean not null default false;
+alter table songs add column if not exists released_by uuid references profiles(id) on delete set null;
+
+-- Uma música está em UM destes estados: de uma cantora, de emergência ou disponível
+do $$ declare c record; begin
+  for c in select conname from pg_constraint where conrelid = 'public.songs'::regclass and contype = 'c' loop
+    execute format('alter table songs drop constraint %I', c.conname);
+  end loop;
+end $$;
+alter table songs add constraint songs_estado_check check (
+  (owner_id is not null and not is_emergency and not is_available)
+  or (owner_id is null and is_emergency and not is_available)
+  or (owner_id is null and is_available and not is_emergency)
+);
 
 -- Funções auxiliares
 create or replace function my_profile_id() returns uuid
@@ -82,11 +99,12 @@ create policy "inserir musicas" on songs for insert to authenticated with check 
   is_admin()
   or (owner_id = my_profile_id() and not is_emergency)
   or (is_emergency and owner_id is null)
+  or (is_available and owner_id is null)
 );
 drop policy if exists "editar musicas" on songs;
 create policy "editar musicas" on songs for update to authenticated
-  using (is_admin() or owner_id = my_profile_id())
-  with check (is_admin() or owner_id = my_profile_id() or (is_emergency and owner_id is null));
+  using (is_admin() or owner_id = my_profile_id() or is_available)   -- qualquer pessoa pode assumir uma música disponível
+  with check (is_admin() or owner_id = my_profile_id() or (is_emergency and owner_id is null) or (is_available and owner_id is null));
 drop policy if exists "excluir musicas" on songs;
 create policy "excluir musicas" on songs for delete to authenticated
   using (is_admin() or owner_id = my_profile_id() or added_by = my_profile_id());

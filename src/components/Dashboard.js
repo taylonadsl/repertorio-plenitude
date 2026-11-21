@@ -4,9 +4,9 @@ import { supabase } from '@/lib/supabase';
 import { norm, initials, voiceOf } from '@/lib/utils';
 import AdminPanel from './AdminPanel';
 import Suggestions from './Suggestions';
-import WhatsNew from './WhatsNew';
+import Tutorial, { tutorialJaVisto, tutorialMarcarVisto } from './Tutorial';
 import ThemeToggle from './ThemeToggle';
-import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon } from './Icons';
+import { SearchIcon, TrashIcon, FlagIcon, PlusIcon, XIcon, ReleaseIcon, MicIcon, HelpIcon } from './Icons';
 import { LogoMark } from './Equalizer';
 
 const TONES = ['#2f6bff', '#0e9ad8', '#7457f0', '#0f9f8f', '#d9487f', '#d98a12'];
@@ -29,13 +29,11 @@ export default function Dashboard({ me, onSignOut }) {
   const [tab, setTab] = useState('repertorio');
   const [who, setWho] = useState('todos');
   const [msg, setMsg] = useState(null);
-  // Tutorial da novidade: abre sempre que a pessoa entra no site já logada ou logo após o login.
-  // Para desligar depois, troque true por false.
-  const [tour, setTour] = useState(true);
-  const goToSuggestions = () => {
-    setTour(false); setTab('repertorio');
-    setTimeout(() => document.querySelector('.suggestions')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
-  };
+  // Tutorial geral: abre na primeira vez (ou em nova versão do tutorial) e pelo botão "Ajuda".
+  // Para abrir toda vez que a pessoa entra, troque MOSTRAR_SEMPRE para true em Tutorial.js.
+  const [tour, setTour] = useState(false);
+  useEffect(() => { if (!tutorialJaVisto()) setTour(true); }, []);
+  const closeTour = () => { tutorialMarcarVisto(); setTour(false); };
 
   const toast = (text, type = 'ok') => { setMsg({ text, type }); setTimeout(() => setMsg(null), 3200); };
 
@@ -86,8 +84,24 @@ export default function Dashboard({ me, onSignOut }) {
     error ? toast('Não foi possível mover.', 'err') : (toast('Movida para emergência.'), load());
   };
 
+  const toAvailable = async (s) => {
+    if (!confirm(`Deixar "${s.title}" disponível? Ela sai do repertório e qualquer pessoa da banda poderá assumir.`)) return;
+    const { error } = await supabase.from('songs').update({ is_available: true, is_emergency: false, owner_id: null, released_by: s.owner_id }).eq('id', s.id);
+    error ? toast('Não foi possível deixar disponível.', 'err') : (toast('Música disponível para a banda.'), load());
+  };
+
+  const claimSong = async (s) => {
+    const { data, error } = await supabase.from('songs')
+      .update({ owner_id: me.id, is_available: false, is_emergency: false, released_by: null })
+      .eq('id', s.id).eq('is_available', true).select();
+    if (error || !data?.length) return toast('Alguém já assumiu essa música.', 'err');
+    toast(`"${s.title}" agora está no seu repertório!`); setQuery(''); load();
+  };
+
   const emergencyAll = songs.filter((s) => s.is_emergency);
   const emergency = emergencyAll.filter(matches);
+  const availableAll = songs.filter((s) => s.is_available);
+  const available = availableAll.filter(matches);
   const singers = profiles
     .map((p) => ({ ...p, list: songs.filter((s) => s.owner_id === p.id) }))
     .map((p) => ({ ...p, shown: p.list.filter(matches), nameHit: q && norm(p.name).includes(q) }))
@@ -97,6 +111,7 @@ export default function Dashboard({ me, onSignOut }) {
   let st = null;
   if (q) {
     if (exact?.is_emergency) st = { kind: 'emerg', text: <>“{exact.title}” é uma <b>música de emergência</b>: qualquer pessoa da banda pode cantar.</> };
+    else if (exact?.is_available) st = { kind: 'avail', song: exact, text: <>“{exact.title}” está nas <b>músicas disponíveis</b>{byId[exact.released_by] ? <> (antes cantada por {byId[exact.released_by].name})</> : null}. Quem quiser pode assumir.</> };
     else if (exact) st = { kind: 'taken', text: <>“{exact.title}” já pertence ao repertório de <b>{byId[exact.owner_id]?.name || 'outra pessoa'}</b>.</> };
     else st = { kind: 'free', text: <>Ninguém canta “{query.trim()}” ainda. Está livre!</> };
   }
@@ -109,6 +124,7 @@ export default function Dashboard({ me, onSignOut }) {
           <ThemeToggle />
           <Avatar p={me} size={36} />
           <span className="who">{me.name.split(' ')[0]}{isAdmin && <em>ADM</em>}</span>
+          <button className="btn-ghost sm help-btn" onClick={() => setTour(true)} aria-label="Ajuda: abrir o tutorial"><HelpIcon /><span>Ajuda</span></button>
           <button className="btn-ghost sm" onClick={onSignOut}>Sair</button>
         </div>
         <nav className="tabs-nav" aria-label="Seções">
@@ -139,12 +155,18 @@ export default function Dashboard({ me, onSignOut }) {
                     <button className="btn-ghost" onClick={() => addSong(query, { emergency: true, artistName: artist })}>Marcar como emergência</button>
                   </div>
                 )}
+                {st.kind === 'avail' && (
+                  <div className="actions single">
+                    <button className="btn" onClick={() => claimSong(st.song)}>Quero cantar esta música</button>
+                  </div>
+                )}
               </div>
             )}
             <dl className="stats">
               <div><dt>Vozes</dt><dd>{profiles.length}</dd></div>
               <div><dt>Músicas</dt><dd>{songs.length}</dd></div>
               <div><dt>Emergência</dt><dd>{emergencyAll.length}</dd></div>
+              <div><dt>Disponíveis</dt><dd>{availableAll.length}</dd></div>
               <div><dt>Sugestões</dt><dd>{suggestions.length}</dd></div>
             </dl>
           </section>
@@ -154,6 +176,18 @@ export default function Dashboard({ me, onSignOut }) {
             <ul className="songs">
               {emergency.length === 0 && <li className="empty">Nenhuma música de emergência{q ? ' com essa busca' : ' ainda'}.</li>}
               {emergency.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={isAdmin || s.added_by === me.id} onDelete={removeSong} />)}
+            </ul>
+          </section>
+
+          <section className="block available glass" aria-labelledby="disp-title">
+            <h2 id="disp-title">Músicas disponíveis <small>cantoras que não querem mais cantar. Quem quiser, assume</small></h2>
+            <ul className="songs">
+              {available.length === 0 && <li className="empty">Nenhuma música disponível{q ? ' com essa busca' : ' no momento'}.</li>}
+              {available.map((s) => (
+                <Song key={s.id} s={s} hit={!!q} onClaim={claimSong}
+                  note={byId[s.released_by] ? `Antes cantada por ${byId[s.released_by].name}` : null}
+                  canDelete={isAdmin || s.added_by === me.id} onDelete={removeSong} />
+              ))}
             </ul>
           </section>
 
@@ -184,7 +218,7 @@ export default function Dashboard({ me, onSignOut }) {
                   </header>
                   <ul className="songs">
                     {p.shown.length === 0 && <li className="empty">{p.list.length ? 'Nada nesta busca.' : 'Ainda sem músicas.'}</li>}
-                    {p.shown.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={canEdit} onDelete={removeSong} onEmergency={canEdit ? toEmergency : null} />)}
+                    {p.shown.map((s) => <Song key={s.id} s={s} hit={!!q} canDelete={canEdit} onDelete={removeSong} onEmergency={canEdit ? toEmergency : null} onAvailable={canEdit ? toAvailable : null} />)}
                   </ul>
                   {canEdit && <AddInline onAdd={(t, a) => addSong(t, { ownerId: p.id, artistName: a })} />}
                 </article>
@@ -194,18 +228,24 @@ export default function Dashboard({ me, onSignOut }) {
         </main>
       )}
       {msg && <div className={`toast ${msg.type}`} role="status">{msg.text}</div>}
-      {tour && <WhatsNew onClose={() => setTour(false)} onGo={goToSuggestions} />}
+      {tour && <Tutorial isAdmin={isAdmin} onClose={closeTour} />}
     </div>
   );
 }
 
-function Song({ s, hit, canDelete, onDelete, onEmergency }) {
+function Song({ s, hit, canDelete, onDelete, onEmergency, onAvailable, onClaim, note }) {
   return (
     <li className={`song ${hit ? 'hit' : ''}`}>
-      <div className="info"><span className="t">{s.title}</span>{s.artist && <span className="a">Original: {s.artist}</span>}</div>
+      <div className="info">
+        <span className="t">{s.title}</span>
+        {s.artist && <span className="a">Original: {s.artist}</span>}
+        {note && <span className="a">{note}</span>}
+      </div>
       <div className="acts">
-        {onEmergency && !s.is_emergency && <button className="icon-btn sm" title="Mover para emergência" aria-label={`Mover ${s.title} para emergência`} onClick={() => onEmergency(s)}><FlagIcon /></button>}
-        {canDelete && <button className="icon-btn sm danger" title="Remover" aria-label={`Remover ${s.title}`} onClick={() => onDelete(s)}><TrashIcon /></button>}
+        {onClaim && <button className="act primary" title="Colocar esta música no meu repertório" aria-label={`Quero cantar ${s.title}`} onClick={() => onClaim(s)}><MicIcon /> Quero cantar</button>}
+        {onEmergency && !s.is_emergency && <button className="act" title="Qualquer pessoa da banda pode cantar" aria-label={`Mover ${s.title} para emergência`} onClick={() => onEmergency(s)}><FlagIcon /> Emergência</button>}
+        {onAvailable && <button className="act" title="Eu não quero mais cantar: deixar livre para outra pessoa" aria-label={`Deixar ${s.title} disponível`} onClick={() => onAvailable(s)}><ReleaseIcon /> Disponível</button>}
+        {canDelete && <button className="act danger" title="Apagar do site" aria-label={`Remover ${s.title}`} onClick={() => onDelete(s)}><TrashIcon /> Remover</button>}
       </div>
     </li>
   );

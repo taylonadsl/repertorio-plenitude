@@ -13,3 +13,9 @@ As chaves públicas do Supabase ficam em `src/lib/config.js`.
 
 ## Banco (só se precisar recriar)
 Supabase → SQL Editor → New query → cole `supabase/schema.sql` → Run. Pode rodar de novo sem perder dados.
+
+## Novidades desta versão
+- **Músicas disponíveis:** botão **Disponível** em cada música do repertório. A música sai da cantora e vai para a lista, de onde qualquer pessoa pode assumir com **Quero cantar**.
+- **Botões com texto:** Emergência, Disponível e Remover agora aparecem escritos.
+- **Tutorial geral:** abre na primeira entrada e pelo botão **Ajuda**. Para abrir toda vez, troque `MOSTRAR_SEMPRE` para `true` em `src/components/Tutorial.js`.
+- **Banco:** depois de atualizar o GitHub, rode `supabase/schema.sql` de novo no SQL Editor do Supabase. Não apaga nada.

@@ -333,3 +333,38 @@ textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4
 @keyframes fadein { from { opacity: 0; } }
 @keyframes pop { from { opacity: 0; transform: translateY(12px) scale(.97); } }
 @media (max-width: 420px) { .tour-btns .btn { padding: .6rem 1.1rem; } }
+
+/* ===== Botões com texto nas músicas (Emergência / Disponível / Remover) ===== */
+.song { flex-wrap: wrap; }
+.acts { flex-wrap: wrap; gap: .35rem; }
+.act { display: inline-flex; align-items: center; gap: .4rem; min-height: 36px; padding: .3rem .8rem; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--muted); font-size: .85rem; font-weight: 700; white-space: nowrap; transition: background .2s, color .2s, border-color .2s; }
+.act svg { width: 16px; height: 16px; }
+button.act:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.act.primary { color: var(--accent-ink); border-color: transparent; background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+button.act.primary:hover { color: var(--accent-ink); filter: brightness(1.08); background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.act.danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 35%, transparent); }
+button.act.danger:hover { color: var(--bad); border-color: var(--bad); background: var(--bad-soft); }
+@media (max-width: 560px) { .song { align-items: flex-start; } .acts { width: 100%; } }
+
+/* ===== Lista de músicas disponíveis ===== */
+.available { border-color: color-mix(in srgb, var(--accent) 30%, var(--line)); background: linear-gradient(135deg, var(--accent-soft), transparent 60%), var(--glass); }
+.available h2 { font-size: 1.25rem; margin-bottom: .7rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .7rem; }
+.available h2::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); align-self: center; }
+.available h2 small { font-size: .9rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.status.avail { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.actions.single { grid-template-columns: auto; justify-content: start; }
+@media (min-width: 720px) { .actions.single { grid-template-columns: auto; } }
+
+/* ===== Botão Ajuda e tutorial geral ===== */
+.help-btn { display: inline-flex; align-items: center; gap: .4rem; }
+@media (max-width: 520px) { .help-btn { padding: .35rem .65rem; } .help-btn span { display: none; } }
+.tour { max-height: calc(100dvh - 2rem); overflow-y: auto; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; margin-top: .42rem; }
+.dot.bad { background: var(--bad); } .dot.warn { background: var(--warn); } .dot.good { background: var(--good); } .dot.info { background: var(--accent); }
+.tour-legend { margin: 0; padding: 0; list-style: none; display: grid; gap: .7rem; }
+.tour-legend li { display: flex; gap: .7rem; align-items: flex-start; color: var(--muted); }
+.tour-legend b { color: var(--ink); }
+.tour-legend.plain li svg { flex: none; margin-top: .25rem; color: var(--accent-2); }
+.tour-song { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem; padding: .7rem .8rem; border-radius: 14px; background: var(--field); border: 1px solid var(--line-strong); }
+.tour-song small { display: block; color: var(--muted); font-size: .8rem; }
+.tour-acts { display: flex; flex-wrap: wrap; gap: .35rem; }
